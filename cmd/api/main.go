@@ -5,21 +5,19 @@ import (
 	"net/http"
 	"time"
 
-	"Olx-API/internal"
-	"Olx-API/internal/config"
-
 	"github.com/joho/godotenv"
+	"github.com/nahul100/Olx-API/internal"
+	"github.com/nahul100/Olx-API/internal/config"
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
+	if err := godotenv.Load(); err != nil {
 		log.Printf("Warning: no .env file found or could not be loaded: %v", err)
 	}
 
-	cfg := config.MustLoad() // load configuration from environment variables and .env file when present
+	cfg := config.MustLoad()
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /health", handlers.Health) // register the health handler to the /health endpoint
+	mux.HandleFunc("GET /health", handlers.Health)
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,

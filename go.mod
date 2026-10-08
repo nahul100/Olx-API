@@ -1,4 +1,4 @@
-module Olx-API
+module github.com/nahul100/Olx-API
 
 go 1.27.1
 
