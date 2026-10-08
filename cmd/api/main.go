@@ -1,35 +1,35 @@
 package main
 
 import (
-	"Olx-API/internal/config"
 	"log"
 	"net/http"
 	"time"
+
+	"Olx-API/internal"
+	"Olx-API/internal/config"
 
 	"github.com/joho/godotenv"
 )
 
 func main() {
-  cfg := config.MustLoad()//load the configuration from environment variables, if the .env file is not found, it will not panic, it will just continue 
-  err := godotenv.Load()
-  if err != nil {
-    log.Println("Error loading .env file")
-  }
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")//order matters here, set the header before writing the response
-        w.WriteHeader(http.StatusOK)//if this is not set, the default status code is 200 OK, but it's good practice to set it explicitly.also write does it's task
-		w.Write([]byte(`{"status": "healthy"}`))
-	})
-	srv := &http.Server{ 
-		Addr: ":" + cfg.Port,
-		Handler: mux,
-		ReadTimeout: 10 * time.Second,
-		WriteTimeout: 40 * time.Second,
-		IdleTimeout: 60 * time.Second,
+	err := godotenv.Load()
+	if err != nil {
+		log.Printf("Warning: no .env file found or could not be loaded: %v", err)
 	}
-	log.Printf("Starting server on port %s", srv.Addr) ;
-	if err := srv.ListenAndServe(); err != nil {
+
+	cfg := config.MustLoad() // load configuration from environment variables and .env file when present
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /health", handlers.Health) // register the health handler to the /health endpoint
+
+	srv := &http.Server{
+		Addr:         ":" + cfg.Port,
+		Handler:      mux,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 40 * time.Second,
+		IdleTimeout:  60 * time.Second,
+	}
+	log.Printf("Starting server on port %s", srv.Addr)
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("server error: %v", err)
 	}
 }
