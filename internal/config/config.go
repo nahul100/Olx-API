@@ -1,7 +1,7 @@
 package config
 import (
-	"os"
-	"github.com/joho/godotenv"
+	"os"//os package ask the operating system for environment variables
+	"github.com/joho/godotenv"// godotenv package is used to load environment variables from a .env file
 )
 type Config struct {
 	Port string
@@ -10,7 +10,7 @@ type Config struct {
 
 
 func MustLoad() Config{
-	godotenv.Load()
+	godotenv.Load()//load the .env file and set the environment variables, if the .env file is not found, it will not panic, it will just continue
 	port := os.Getenv("PORT")
 	if port == "" { //check if the PORT environment variable is set
 		panic("PORT environment variable is not set")

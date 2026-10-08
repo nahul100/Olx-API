@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-  cfg := config.MustLoad()
+  cfg := config.MustLoad()//load the configuration from environment variables, if the .env file is not found, it will not panic, it will just continue 
   err := godotenv.Load()
   if err != nil {
     log.Fatal("Error loading .env file")
