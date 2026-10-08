@@ -13,7 +13,7 @@ func main() {
   cfg := config.MustLoad()//load the configuration from environment variables, if the .env file is not found, it will not panic, it will just continue 
   err := godotenv.Load()
   if err != nil {
-    log.Fatal("Error loading .env file")
+    log.Println("Error loading .env file")
   }
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
@@ -21,7 +21,7 @@ func main() {
         w.WriteHeader(http.StatusOK)//if this is not set, the default status code is 200 OK, but it's good practice to set it explicitly.also write does it's task
 		w.Write([]byte(`{"status": "healthy"}`))
 	})
-	srv := &http.Server{
+	srv := &http.Server{ 
 		Addr: ":" + cfg.Port,
 		Handler: mux,
 		ReadTimeout: 10 * time.Second,
