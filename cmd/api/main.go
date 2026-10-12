@@ -6,16 +6,22 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	"github.com/nahul100/Olx-API/internal"
 	"github.com/nahul100/Olx-API/internal/config"
+	"github.com/nahul100/Olx-API/internal/db"
+
+	"github.com/nahul100/Olx-API/internal/handlers"
+
 )
 
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Printf("Warning: no .env file found or could not be loaded: %v", err)
 	}
-
 	cfg := config.MustLoad()
+	_, err := db.Connect(cfg.DatabaseURL)
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", handlers.Health)
 
