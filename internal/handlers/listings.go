@@ -1,0 +1,54 @@
+package handlers
+
+import (
+	"database/sql"
+	"encoding/json"
+	"log"
+	"net/http"
+	"time"
+)
+
+type listing struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Price       string `json:"price"`
+	City        string `json:"city"`
+	CreatedAt   time.Time `json:"created_at"`
+}
+
+func List(db *sql.DB) http.HandlerFunc {//closure factory function that returns a handler function
+	// Implement your logic to handle the /listings endpoint here
+	return func(w http.ResponseWriter, r *http.Request) {
+		rows, err := db.Query(
+			`SELECT id, title, description, price, city, created_at
+		     FROM listings
+		     ORDER BY created_at DESC
+		     LIMIT 100`)
+		if err != nil {
+			log.Printf("Error querying listings: %v", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+       
+		listings := []listing{}
+		for rows.Next() {
+           var l listing
+		   if err := rows.Scan(&l.ID, &l.Title, &l.Description, &l.Price, &l.City, &l.CreatedAt); err != nil {
+			   log.Printf("Error scanning listing: %v", err)
+			   http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			   return
+		   }
+		   listings = append(listings, l)
+		}
+		if err := rows.Err(); err != nil {
+			log.Printf("Error iterating listings: %v", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(listings)
+	}
+}

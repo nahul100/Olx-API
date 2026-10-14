@@ -18,12 +18,14 @@ func main() {
 		log.Printf("Warning: no .env file found or could not be loaded: %v", err)
 	}
 	cfg := config.MustLoad()
-	_, err := db.Connect(cfg.DatabaseURL)
+	db, err := db.Connect(cfg.DatabaseURL)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", handlers.Health)
+    mux.HandleFunc("GET /listings", handlers.List(db))
+
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,

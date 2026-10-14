@@ -10,3 +10,6 @@ migrate-up:
 
 migrate-down:
 	@go run ./cmd/migrate down
+
+seed:
+	@go run ./cmd/migrate seed
