@@ -25,7 +25,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", handlers.Health)
     mux.HandleFunc("GET /listings", handlers.List(db))
-
+    mux.HandleFunc("GET /listings/{id}", handlers.DeleteListings(db))
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
