@@ -22,10 +22,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
+	lh:= handlers.NewListingHandler(db)//dependency injection of db to handler
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", handlers.Health)
-    mux.HandleFunc("GET /listings", handlers.List(db))
-    mux.HandleFunc("GET /listings/{id}", handlers.DeleteListings(db))
+    mux.HandleFunc("GET /listings", lh.List)//
+    mux.HandleFunc("DELETE /listings/{id}", lh.Delete)
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,

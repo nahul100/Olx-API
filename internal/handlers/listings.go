@@ -17,11 +17,18 @@ type listing struct {
 	City        string `json:"city"`
 	CreatedAt   time.Time `json:"created_at"`
 }
+type ListingHandler struct {
+	db *sql.DB
+}
+func NewListingHandler(db *sql.DB) *ListingHandler {
+	return &ListingHandler{
+		db: db,
+	}
+	}
 
-func List(db *sql.DB) http.HandlerFunc {//closure factory function that returns a handler function
-	// Implement your logic to handle the /listings endpoint here
-	return func(w http.ResponseWriter, r *http.Request) {
-		rows, err := db.Query(
+func (lh *ListingHandler) List(w http.ResponseWriter, r *http.Request) {
+	
+		rows, err := lh.db.Query(
 			`SELECT id, title, description, price, city, created_at
 		     FROM listings
 		     ORDER BY created_at DESC
@@ -51,22 +58,21 @@ func List(db *sql.DB) http.HandlerFunc {//closure factory function that returns 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		_ = json.NewEncoder(w).Encode(listings)
-	}
+	
 }
-func DeleteListings(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		id := r.PathValue("id")
-		fmt.Println("id", id)
-        
-		_, err := db.Exec("DELETE FROM listings WHERE id = $1", id)
-		if err != nil {
-			log.Printf("Error deleting listing: %v", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
+func (lh *ListingHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	fmt.Println("id", id)
+
+	_, err := lh.db.Exec("DELETE FROM listings WHERE id = $1", id)
+	if err != nil {
+		log.Printf("Error deleting listing: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 
 		w.WriteHeader(http.StatusNoContent)
 		
 		// Implement deletion logic here
 	}
-}
+
