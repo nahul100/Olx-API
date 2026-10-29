@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"os"
+	"log/slog"
 
 	"github.com/joho/godotenv"
 	"github.com/nahul100/Olx-API/internal/config"
@@ -22,7 +24,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	lh:= handlers.NewListingHandler(db)//dependency injection of db to handler
+	handler := slog.NewJSONHandler(os.Stdout,&slog.HandlerOptions{
+		AddSource: true,
+        Level : slog.LevelInfo,
+	})
+	logger:=slog.New(handler)
+	slog.SetDefault(logger)
+    
+	lh:= handlers.NewListingHandler(db, logger)
+	
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", handlers.Health)
     mux.HandleFunc("GET /listings", lh.List)//
