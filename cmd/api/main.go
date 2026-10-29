@@ -6,10 +6,12 @@ import (
 	"time"
 	"os"
 	"log/slog"
+	
 
 	"github.com/joho/godotenv"
 	"github.com/nahul100/Olx-API/internal/config"
 	"github.com/nahul100/Olx-API/internal/db"
+	"github.com/nahul100/Olx-API/internal/middleware"
 
 	"github.com/nahul100/Olx-API/internal/handlers"
 
@@ -24,23 +26,24 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	handler := slog.NewJSONHandler(os.Stdout,&slog.HandlerOptions{
+	logHandler := slog.NewJSONHandler(os.Stdout,&slog.HandlerOptions{
 		AddSource: true,
         Level : slog.LevelInfo,
 	})
-	logger:=slog.New(handler)
+	logger:=slog.New(logHandler)
 	slog.SetDefault(logger)
     
 	lh:= handlers.NewListingHandler(db, logger)
-	
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", handlers.Health)
     mux.HandleFunc("GET /listings", lh.List)//
     mux.HandleFunc("DELETE /listings/{id}", lh.Delete)
+	handler := middleware.RequestID(mux)
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
-		Handler:      mux,
+		Handler:      handler,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 40 * time.Second,
 		IdleTimeout:  60 * time.Second,

@@ -7,9 +7,11 @@ import (
 	"log"
 	"net/http"
 	"time"
+
 	//"os"
 	"log/slog"
-	
+
+	"github.com/nahul100/Olx-API/internal/middleware"
 )
 
 type listing struct {
@@ -24,10 +26,10 @@ type ListingHandler struct {
 	db *sql.DB
     logger *slog.Logger
 }
-func NewListingHandler(db *sql.DB) *ListingHandler {
+func NewListingHandler(db *sql.DB, logger *slog.Logger) *ListingHandler {
 	return &ListingHandler{
 		db: db,
-		logger: slog.Default(),
+		logger: logger,
 	}
 	}
 
@@ -70,6 +72,8 @@ func (lh *ListingHandler) List(w http.ResponseWriter, r *http.Request) {
 }
 func (lh *ListingHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context() // request scoped context, which can be used to cancel the query if the client disconnects or the request times out
+	//requestId := ctx.Value("requestCtxId").(string)
+	requestId := middleware.RequestIDFromContext(ctx)
 	id := r.PathValue("id")
 	fmt.Println("id", id)
 
@@ -79,7 +83,7 @@ func (lh *ListingHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	_, err := lh.db.ExecContext(ctx, "DELETE FROM listings WHERE id = $1", id)
 	if err != nil {
 		//log.Printf("Error deleting listing: %v", err)
-		lh.logger.Error("delete failed", "listing_id", id, "error", err)
+		lh.logger.Error("delete failed", "listing_id", id, "requestId",requestId,"error", err)
 		//log.Error("delete failed", "listing_id", id, "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
