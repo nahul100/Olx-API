@@ -11,6 +11,7 @@ import (
 	//"os"
 	"log/slog"
 
+	"github.com/nahul100/Olx-API/internal/httpx"
 	"github.com/nahul100/Olx-API/internal/middleware"
 )
 
@@ -38,7 +39,7 @@ func (lh *ListingHandler) List(w http.ResponseWriter, r *http.Request) {
 	
 		rows, err := lh.db.QueryContext(ctx,
 			`SELECT id, title, description, price, city, created_at
-		     FROM listings
+		     FROM listing
 		     ORDER BY created_at DESC
 		     LIMIT 100`)
 		if err != nil {
@@ -62,7 +63,8 @@ func (lh *ListingHandler) List(w http.ResponseWriter, r *http.Request) {
 		}
 		if err := rows.Err(); err != nil {
 			log.Printf("Error iterating listings: %v", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			//http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			httpx.Error(w, http.StatusInternalServerError, "something went wrong","Internal Error")
 			return
 		} 
 		w.Header().Set("Content-Type", "application/json")
@@ -85,7 +87,7 @@ func (lh *ListingHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		//log.Printf("Error deleting listing: %v", err)
 		lh.logger.Error("delete failed", "listing_id", id, "requestId",requestId,"error", err)
 		//log.Error("delete failed", "listing_id", id, "error", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		httpx.Error(w, http.StatusInternalServerError, "something went wrong",string(httpx.CodeInternalError))
 		return
 	}
 
