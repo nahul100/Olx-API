@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,7 +11,7 @@ import (
 
 	//"os"
 	"log/slog"
-     
+
 	"github.com/nahul100/Olx-API/internal/httpx"
 	"github.com/nahul100/Olx-API/internal/middleware"
 )
@@ -101,10 +102,16 @@ func (lh *ListingHandler) Delete(w http.ResponseWriter, r *http.Request) {
 func (lh ListingHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	requestId := middleware.RequestIDFromContext(ctx)
-	var req listing
+	var req CreateListing
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		lh.logger.Error("failed to decode", "request_id", requestId, "err", err)
-		httpx.Error(w, http.StatusBadRequest, "invalid body", string(httpx.CodeInvalidID))
+		httpx.Error(w, http.StatusBadRequest, "invalid body", string(httpx.CodeMalformedJSON))
+		return
+	}
+	if err := req.Validate(); err != nil {
+		var verr *ValidationError
+		errors.As(err, &verr)
+		httpx.ValidationError(w, http.StatusUnprocessableEntity, err.Error(), string(httpx.CodeValidationError), verr.Field)
 		return
 	}
 
